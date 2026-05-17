@@ -1,0 +1,20 @@
+{
+  "name": "soccer-planner",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "Mihail Andreev",
+  "private": true,
+  "type": "commonjs",
+  "workspaces": [
+    "soccer-web",
+    "soccer-mobile"
+  ],
+  "scripts": {
+    "dev": "concurrently -n web,mobile \"npm run dev -w soccer-web\" \"npm run dev -w soccer-mobile\"",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
