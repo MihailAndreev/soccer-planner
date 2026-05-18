@@ -1,65 +1,63 @@
-import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <section className="mx-auto grid min-h-[calc(100vh-153px)] w-full max-w-6xl gap-10 px-5 py-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
+      <div className="max-w-2xl">
+        <p className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-700">
+          Pickup soccer made simpler
+        </p>
+        <h1 className="text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl">
+          Welcome to Soccer Planner
+        </h1>
+        <p className="mt-5 text-lg leading-8 text-slate-700">
+          Create groups, schedule matches, and help every player know where to
+          be, when to arrive, and whether there is still room on the squad.
+        </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <Link
+            href="/login"
+            className="inline-flex h-12 items-center justify-center rounded-lg bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            Login
+          </Link>
+          <Link
+            href="/register"
+            className="inline-flex h-12 items-center justify-center rounded-lg border border-slate-300 bg-white px-6 text-base font-semibold text-slate-900 transition-colors hover:border-emerald-600 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
           >
-            Documentation
-          </a>
+            Register
+          </Link>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <div className="rounded-lg border border-emerald-200 bg-emerald-700 p-3 shadow-sm">
+        <div className="relative overflow-hidden rounded-md border-2 border-white/80 bg-emerald-600 p-5 text-white">
+          <div className="absolute left-1/2 top-0 h-full w-px bg-white/50" />
+          <div className="absolute left-1/2 top-1/2 size-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/60" />
+          <div className="relative grid gap-4 sm:grid-cols-2">
+            <div className="rounded-md bg-white p-4 text-slate-950 shadow-sm">
+              <p className="text-sm font-semibold text-emerald-700">
+                Saturday Match
+              </p>
+              <p className="mt-2 text-2xl font-bold">10:00 AM</p>
+              <p className="mt-1 text-sm text-slate-600">Riverside Pitch</p>
+            </div>
+            <div className="rounded-md bg-white p-4 text-slate-950 shadow-sm">
+              <p className="text-sm font-semibold text-sky-700">Players</p>
+              <p className="mt-2 text-2xl font-bold">14 / 18</p>
+              <p className="mt-1 text-sm text-slate-600">4 spots open</p>
+            </div>
+            <div className="rounded-md bg-slate-950 p-4 text-white shadow-sm sm:col-span-2">
+              <p className="text-sm font-semibold text-emerald-300">
+                Group Manager
+              </p>
+              <p className="mt-2 text-base">
+                Confirm the lineup and share updates with the group.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
