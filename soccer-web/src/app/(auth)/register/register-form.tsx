@@ -1,17 +1,14 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useActionState } from "react";
+
+import { registerAction } from "@/lib/auth/actions";
 
 export function RegisterForm() {
-  const [message, setMessage] = useState("");
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setMessage("Registration will be connected to the API soon.");
-  }
+  const [state, formAction, isPending] = useActionState(registerAction, {});
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-5">
+    <form action={formAction} className="grid gap-5">
       <div className="grid gap-2">
         <label className="text-sm font-medium text-slate-700" htmlFor="name">
           Name
@@ -63,14 +60,15 @@ export function RegisterForm() {
 
       <button
         type="submit"
+        disabled={isPending}
         className="inline-flex h-12 items-center justify-center rounded-lg bg-emerald-600 px-5 text-base font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
       >
-        Register
+        {isPending ? "Creating account..." : "Register"}
       </button>
 
-      {message ? (
-        <p className="rounded-lg bg-sky-50 px-4 py-3 text-sm text-sky-800">
-          {message}
+      {state.error ? (
+        <p className="rounded-lg bg-rose-50 px-4 py-3 text-sm text-rose-800">
+          {state.error}
         </p>
       ) : null}
     </form>

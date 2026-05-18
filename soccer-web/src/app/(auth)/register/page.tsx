@@ -1,7 +1,16 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import { getCurrentUser } from "@/lib/auth/session";
 import { RegisterForm } from "./register-form";
 
-export default function RegisterPage() {
+export default async function RegisterPage() {
+  const currentUser = await getCurrentUser();
+
+  if (currentUser) {
+    redirect("/");
+  }
+
   return (
     <section className="mx-auto flex min-h-[calc(100vh-153px)] w-full max-w-md flex-col justify-center px-5 py-12">
       <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm sm:p-8">

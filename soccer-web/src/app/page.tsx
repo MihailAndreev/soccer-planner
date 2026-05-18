@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-export default function Home() {
+import { getCurrentUser } from "@/lib/auth/session";
+
+export default async function Home() {
+  const currentUser = await getCurrentUser();
+
   return (
     <section className="mx-auto grid min-h-[calc(100vh-153px)] w-full max-w-6xl gap-10 px-5 py-12 sm:py-16 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:px-8">
       <div className="max-w-2xl">
@@ -14,20 +18,31 @@ export default function Home() {
           Create groups, schedule matches, and help every player know where to
           be, when to arrive, and whether there is still room on the squad.
         </p>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link
-            href="/login"
-            className="inline-flex h-12 items-center justify-center rounded-lg bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-          >
-            Login
-          </Link>
-          <Link
-            href="/register"
-            className="inline-flex h-12 items-center justify-center rounded-lg border border-slate-300 bg-white px-6 text-base font-semibold text-slate-900 transition-colors hover:border-emerald-600 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-          >
-            Register
-          </Link>
-        </div>
+        {currentUser ? (
+          <div className="mt-8 rounded-lg border border-emerald-200 bg-white px-5 py-4 text-slate-700 shadow-sm">
+            <p className="font-semibold text-slate-950">
+              Welcome back, {currentUser.name}.
+            </p>
+            <p className="mt-1 text-sm">
+              You are logged in and ready to plan your next match.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/login"
+              className="inline-flex h-12 items-center justify-center rounded-lg bg-emerald-600 px-6 text-base font-semibold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            >
+              Login
+            </Link>
+            <Link
+              href="/register"
+              className="inline-flex h-12 items-center justify-center rounded-lg border border-slate-300 bg-white px-6 text-base font-semibold text-slate-900 transition-colors hover:border-emerald-600 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            >
+              Register
+            </Link>
+          </div>
+        )}
       </div>
 
       <div className="rounded-lg border border-emerald-200 bg-emerald-700 p-3 shadow-sm">
