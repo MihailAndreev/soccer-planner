@@ -1,7 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
-import { groupMembers, groups, matchJoins, matches, users } from "@/db/schema";
+import { groupMembers, groups, matchComments, matchJoins, matches, users } from "@/db/schema";
 
 export type MatchTimingState = "upcoming" | "current" | "past";
 export type MatchCapacityState = "under capacity" | "full capacity" | "over capacity";
@@ -11,6 +11,13 @@ export type MatchPlayer = {
   name: string;
   email: string;
   extraSlots: number;
+};
+
+export type MatchComment = {
+  id: number;
+  text: string;
+  createdAt: Date;
+  authorName: string;
 };
 
 export type UserMatch = {
@@ -28,6 +35,8 @@ export type UserMatch = {
   playerCount: number;
   occupiedSlots: number;
   players: MatchPlayer[];
+  comments: MatchComment[];
+  currentUserJoin: MatchPlayer | null;
   startsAt: Date;
 };
 
@@ -75,10 +84,18 @@ function getCapacityState(occupiedSlots: number, capacity: number): MatchCapacit
   return "over capacity";
 }
 
-function toUserMatch(row: MatchRow, players: MatchPlayer[]): UserMatch {
+function toUserMatch(
+  row: MatchRow,
+  players: MatchPlayer[],
+  comments: MatchComment[] = [],
+  currentUserId?: number,
+): UserMatch {
   const startsAt = getMatchStart(row.matchDate, row.matchTime);
   const timingState = getTimingState(startsAt);
   const occupiedSlots = players.reduce((total, player) => total + 1 + player.extraSlots, 0);
+  const currentUserJoin = currentUserId
+    ? players.find((player) => player.id === currentUserId) ?? null
+    : null;
 
   return {
     ...row,
@@ -89,6 +106,8 @@ function toUserMatch(row: MatchRow, players: MatchPlayer[]): UserMatch {
     playerCount: players.length,
     occupiedSlots,
     players,
+    comments,
+    currentUserJoin,
   };
 }
 
@@ -124,6 +143,19 @@ async function getPlayersByMatchId(matchIds: number[]) {
   }, new Map<number, MatchPlayer[]>());
 }
 
+async function getCommentsByMatchId(matchId: number) {
+  return db
+    .select({
+      id: matchComments.id,
+      text: matchComments.text,
+      createdAt: matchComments.createdAt,
+      authorName: users.name,
+    })
+    .from(matchComments)
+    .innerJoin(users, eq(matchComments.userId, users.id))
+    .where(eq(matchComments.matchId, matchId));
+}
+
 export async function getDashboardMatches(userId: number) {
   const memberships = await db
     .select({ groupId: groupMembers.groupId })
@@ -154,7 +186,7 @@ export async function getDashboardMatches(userId: number) {
     .where(inArray(matches.groupId, groupIds));
   const playersByMatchId = await getPlayersByMatchId(matchRows.map((match) => match.id));
   const userMatches = matchRows
-    .map((match) => toUserMatch(match, playersByMatchId.get(match.id) ?? []))
+    .map((match) => toUserMatch(match, playersByMatchId.get(match.id) ?? [], [], userId))
     .sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
 
   return {
@@ -164,6 +196,12 @@ export async function getDashboardMatches(userId: number) {
 }
 
 export async function getUserMatch(userId: number, matchId: number) {
+  const access = await getUserMatchAccess(userId, matchId);
+
+  return access.status === "ok" ? access.match : null;
+}
+
+export async function getUserMatchAccess(userId: number, matchId: number) {
   const matchRow = await db
     .select({
       id: matches.id,
@@ -182,7 +220,7 @@ export async function getUserMatch(userId: number, matchId: number) {
   const match = matchRow[0];
 
   if (!match) {
-    return null;
+    return { status: "not-found" as const };
   }
 
   const membership = await db
@@ -192,10 +230,20 @@ export async function getUserMatch(userId: number, matchId: number) {
     .limit(1);
 
   if (!membership[0]) {
-    return null;
+    return { status: "forbidden" as const };
   }
 
   const playersByMatchId = await getPlayersByMatchId([match.id]);
+  const comments = await getCommentsByMatchId(match.id);
 
-  return toUserMatch(match, playersByMatchId.get(match.id) ?? []);
+  return {
+    status: "ok" as const,
+    match: toUserMatch(match, playersByMatchId.get(match.id) ?? [], comments, userId),
+  };
+}
+
+export async function getMatchForMutation(userId: number, matchId: number) {
+  const access = await getUserMatchAccess(userId, matchId);
+
+  return access.status === "ok" ? access.match : null;
 }
