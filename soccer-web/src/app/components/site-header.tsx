@@ -32,6 +32,14 @@ export async function SiteHeader() {
 
             {currentUser ? (
               <>
+                <li>
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex min-h-10 items-center rounded-lg px-3 text-slate-700 transition-colors hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                  >
+                    Dashboard
+                  </Link>
+                </li>
                 <li className="flex min-h-10 items-center rounded-lg bg-slate-100 px-3 text-slate-700">
                   <span className="max-w-48 truncate">
                     {currentUser.name}

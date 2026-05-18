@@ -62,7 +62,7 @@ export async function registerAction(
     name: createdUser.name,
   });
 
-  redirect("/");
+  redirect("/dashboard");
 }
 
 export async function loginAction(
@@ -96,7 +96,7 @@ export async function loginAction(
     name: user.name,
   });
 
-  redirect("/");
+  redirect("/dashboard");
 }
 
 export async function logoutAction() {
