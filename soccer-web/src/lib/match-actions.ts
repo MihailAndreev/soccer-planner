@@ -1,13 +1,15 @@
 "use server";
 
-import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { db } from "@/db";
-import { matchJoins } from "@/db/schema";
 import { getCurrentUser } from "./auth/session";
-import { getMatchForMutation } from "./matches";
+import {
+  joinMatch,
+  leaveMatch,
+  MatchMutationError,
+  reserveMatchSlots,
+} from "./match-service";
 
 export type MatchActionState = {
   error?: string;
@@ -29,54 +31,29 @@ function revalidateMatchViews(matchId: number) {
   revalidatePath(`/matches/${matchId}`);
 }
 
-async function requireMutableMatch(matchId: number) {
+async function requireCurrentUser() {
   const currentUser = await getCurrentUser();
 
   if (!currentUser) {
     redirect("/login");
   }
 
-  const match = await getMatchForMutation(currentUser.userId, matchId);
-
-  if (!match) {
-    throw new Error("You are not allowed to update this match.");
-  }
-
-  if (!match.isActive) {
-    throw new Error("This match is closed.");
-  }
-
-  return { currentUser, match };
+  return currentUser;
 }
 
 export async function joinMatchAction(formData: FormData) {
   const matchId = readMatchId(formData);
-  const { currentUser } = await requireMutableMatch(matchId);
-  const existingJoin = await db
-    .select({ id: matchJoins.id })
-    .from(matchJoins)
-    .where(and(eq(matchJoins.matchId, matchId), eq(matchJoins.userId, currentUser.userId)))
-    .limit(1);
+  const currentUser = await requireCurrentUser();
 
-  if (!existingJoin[0]) {
-    await db.insert(matchJoins).values({
-      matchId,
-      userId: currentUser.userId,
-      extraSlots: 0,
-    });
-  }
-
+  await joinMatch(currentUser.userId, matchId);
   revalidateMatchViews(matchId);
 }
 
 export async function leaveMatchAction(formData: FormData) {
   const matchId = readMatchId(formData);
-  const { currentUser } = await requireMutableMatch(matchId);
+  const currentUser = await requireCurrentUser();
 
-  await db
-    .delete(matchJoins)
-    .where(and(eq(matchJoins.matchId, matchId), eq(matchJoins.userId, currentUser.userId)));
-
+  await leaveMatch(currentUser.userId, matchId);
   revalidateMatchViews(matchId);
 }
 
@@ -87,34 +64,17 @@ export async function updateExtraSlotsAction(
   const matchId = readMatchId(formData);
   const extraSlotsValue = formData.get("extraSlots");
   const extraSlots = typeof extraSlotsValue === "string" ? Number(extraSlotsValue) : 0;
-  const { currentUser, match } = await requireMutableMatch(matchId);
+  const currentUser = await requireCurrentUser();
 
-  if (!Number.isInteger(extraSlots) || extraSlots < 0) {
-    return { error: "Additional slots must be a whole number of zero or more." };
+  try {
+    await reserveMatchSlots(currentUser.userId, matchId, extraSlots);
+  } catch (error) {
+    if (error instanceof MatchMutationError) {
+      return { error: error.message };
+    }
+
+    throw error;
   }
-
-  if (!match.currentUserJoin) {
-    return { error: "Join the match before reserving friend slots." };
-  }
-
-  const occupiedWithoutCurrentUser =
-    match.occupiedSlots - (1 + match.currentUserJoin.extraSlots);
-  const nextOccupiedSlots = occupiedWithoutCurrentUser + 1 + extraSlots;
-
-  if (nextOccupiedSlots > match.capacity) {
-    const availableFriendSlots = Math.max(0, match.capacity - occupiedWithoutCurrentUser - 1);
-
-    return {
-      error: `This match only has room for ${availableFriendSlots} friend slot${
-        availableFriendSlots === 1 ? "" : "s"
-      }.`,
-    };
-  }
-
-  await db
-    .update(matchJoins)
-    .set({ extraSlots })
-    .where(and(eq(matchJoins.matchId, matchId), eq(matchJoins.userId, currentUser.userId)));
 
   revalidateMatchViews(matchId);
 

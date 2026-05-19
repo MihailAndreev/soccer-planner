@@ -5,7 +5,7 @@ import { AUTH_COOKIE_NAME, verifySessionToken } from "./lib/auth/jwt";
 const publicRoutes = new Set(["/", "/login", "/register"]);
 
 function isPublicPath(pathname: string) {
-  return publicRoutes.has(pathname);
+  return pathname.startsWith("/api/") || publicRoutes.has(pathname);
 }
 
 export async function proxy(request: NextRequest) {

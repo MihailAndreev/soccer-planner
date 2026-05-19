@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { clearSession, createSession } from "./session";
+import { authenticateUser } from "./service";
 
 export type AuthActionState = {
   error?: string;
@@ -76,25 +77,13 @@ export async function loginAction(
     return { error: "Please enter your email and password." };
   }
 
-  const user = await db.query.users.findFirst({
-    where: eq(users.email, email),
-  });
+  const login = await authenticateUser(email, password);
 
-  if (!user) {
+  if (!login) {
     return { error: "Invalid email or password." };
   }
 
-  const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-
-  if (!passwordMatches) {
-    return { error: "Invalid email or password." };
-  }
-
-  await createSession({
-    userId: user.id,
-    email: user.email,
-    name: user.name,
-  });
+  await createSession(login.user);
 
   redirect("/dashboard");
 }
