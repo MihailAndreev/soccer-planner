@@ -1,5 +1,6 @@
+import { useFocusEffect } from '@react-navigation/native';
 import { Link } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -47,16 +48,17 @@ export default function MatchesScreen() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const hasLoadedOnce = useRef(false);
 
   const loadMatches = useCallback(
-    async (page = 1, refreshing = false) => {
+    async (page = 1, refreshing = false, quiet = false) => {
       if (!token) {
         return;
       }
 
       if (refreshing) {
         setIsRefreshing(true);
-      } else {
+      } else if (!quiet) {
         setIsLoading(true);
       }
 
@@ -70,6 +72,7 @@ export default function MatchesScreen() {
 
         setMatches(response.data);
         setPaging(response.paging);
+        hasLoadedOnce.current = true;
       } catch (loadError) {
         if (loadError instanceof ApiError && loadError.status === 401) {
           logout();
@@ -88,6 +91,14 @@ export default function MatchesScreen() {
   useEffect(() => {
     loadMatches();
   }, [loadMatches]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (hasLoadedOnce.current) {
+        loadMatches(paging?.page ?? 1, false, true);
+      }
+    }, [loadMatches, paging?.page]),
+  );
 
   const currentPage = paging?.page ?? 1;
   const totalPages = paging?.totalPages ?? 1;
