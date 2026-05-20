@@ -7,6 +7,7 @@ A soccer planner app: view groups and matches (users login, view matches, join /
 - Technologies: React Native + Expo + Expo Router
 - Back-end: Soccer Planner RESTful API, with "Bearer token" auth
 - Back-end API source code: `..\soccer-web\src\app\api`
+- API Docs: http://localhost:3000/api/docs  
 - Modular design: split the app into meaningful components, to avoid too much code in a single file and reuse repeating code
 
 # Mobile User Interface Guidelines

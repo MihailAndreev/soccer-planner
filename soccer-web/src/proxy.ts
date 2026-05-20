@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { applyCorsHeaders, corsPreflightResponse } from "./lib/api/cors";
 import { AUTH_COOKIE_NAME, verifySessionToken } from "./lib/auth/jwt";
 
 const publicRoutes = new Set(["/", "/login", "/register"]);
@@ -10,6 +11,14 @@ function isPublicPath(pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (pathname.startsWith("/api/")) {
+    if (request.method === "OPTIONS") {
+      return corsPreflightResponse(request);
+    }
+
+    return applyCorsHeaders(NextResponse.next(), request);
+  }
 
   if (isPublicPath(pathname)) {
     return NextResponse.next();
