@@ -16,6 +16,37 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    npx expo start
    ```
 
+## API URL
+
+Local development can use:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=http://localhost:3000/api
+```
+
+For a deployed web build, do not use `localhost`. Expo embeds `EXPO_PUBLIC_*`
+values at build time, so set this variable in Netlify before deploying:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL=https://your-deployed-soccer-web-domain.com/api
+```
+
+If the API is deployed on Netlify too, use that site's public URL, for example
+`https://your-soccer-web-site.netlify.app/api`.
+
+## Netlify
+
+This app exports a static web build with Expo. Netlify should use:
+
+```bash
+Build command: npm run build
+Publish directory: dist
+```
+
+Add `EXPO_PUBLIC_API_BASE_URL` in Netlify under Site configuration ->
+Environment variables, then redeploy the site so the value is baked into the
+generated JavaScript.
+
 In the output, you'll find options to open the app in a
 
 - [development build](https://docs.expo.dev/develop/development-builds/introduction/)

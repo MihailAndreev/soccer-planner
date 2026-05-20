@@ -29,6 +29,24 @@ function getApiBaseUrl() {
 
 const API_BASE_URL = getApiBaseUrl();
 
+function isLocalWebHost(hostname: string) {
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+}
+
+function assertUsableApiBaseUrl() {
+  if (
+    Platform.OS === 'web' &&
+    typeof window !== 'undefined' &&
+    API_BASE_URL.includes('localhost') &&
+    !isLocalWebHost(window.location.hostname)
+  ) {
+    throw new ApiError(
+      'The deployed app is still configured to use localhost. Set EXPO_PUBLIC_API_BASE_URL to your deployed API URL and redeploy.',
+      0,
+    );
+  }
+}
+
 export class ApiError extends Error {
   status: number;
 
@@ -46,6 +64,8 @@ type ApiOptions = {
 };
 
 export async function apiRequest<T>(path: string, options: ApiOptions = {}) {
+  assertUsableApiBaseUrl();
+
   const headers: HeadersInit = {
     Accept: 'application/json',
   };
